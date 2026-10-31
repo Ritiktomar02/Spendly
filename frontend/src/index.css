@@ -1,0 +1,22 @@
+/* Tailwind base directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global base styles — things Tailwind can't do as utility classes */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-paper text-ink font-body antialiased;
+    line-height: 1.6;
+  }
+
+  a {
+    @apply no-underline;
+    color: inherit;
+  }
+}
+

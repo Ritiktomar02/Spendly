@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Environment variables — never commit these
+.env
+
+# Build output
+dist/
+
+# macOS
+.DS_Store
+
+# Python / Flask (legacy — no longer used)
+venv/
+__pycache__/
+*.pyc
+*.pyo
+expense_tracker.db
+
+# Editor
+.vscode/
+.idea/
