@@ -7,6 +7,10 @@ function Footer() {
         <span className="text-accent-2 text-[1.5rem]">◈</span>
         <span className="font-semibold text-[1rem]">Spendly</span>
         <p className="text-[0.8rem] text-ink-faint">Track every rupee. Own your finances.</p>
+        <div className="flex flex-col items-center gap-1">
+          <a href="#">Terms and Conditions</a>{" "}
+          <a href="#">Privacy Policy</a>
+        </div>
       </div>
     </footer>
   );
