@@ -11,7 +11,7 @@ function Footer() {
         <p className="text-[0.8rem] text-ink-faint">Track every rupee. Own your finances.</p>
         <div className="flex flex-col items-center gap-1">
           <Link to="/terms">Terms and Conditions</Link>{" "}
-          <a href="#">Privacy Policy</a>
+          <Link to="/privacy">Privacy Policy</Link>
         </div>
       </div>
     </footer>
