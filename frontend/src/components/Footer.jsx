@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 // Footer appears on every page via App.jsx
 function Footer() {
   return (
@@ -8,7 +10,7 @@ function Footer() {
         <span className="font-semibold text-[1rem]">Spendly</span>
         <p className="text-[0.8rem] text-ink-faint">Track every rupee. Own your finances.</p>
         <div className="flex flex-col items-center gap-1">
-          <a href="#">Terms and Conditions</a>{" "}
+          <Link to="/terms">Terms and Conditions</Link>{" "}
           <a href="#">Privacy Policy</a>
         </div>
       </div>
