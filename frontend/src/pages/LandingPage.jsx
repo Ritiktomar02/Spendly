@@ -1,4 +1,59 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+
+// Placeholder demo video — swap the ID for the real Spendly walkthrough later
+const DEMO_VIDEO_URL = "https://www.youtube.com/embed/M7lc1UVf-VE?autoplay=1&rel=0";
+
+// Video modal for "See how it works".
+// The iframe only exists while the modal is open, so closing it unmounts the
+// player and the video stops completely.
+function VideoModal({ onClose }) {
+  // Close on Escape and lock page scroll while open
+  useEffect(() => {
+    function handleKey(e) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", handleKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
+
+  return (
+    // Clicking the dark backdrop closes the modal
+    <div
+      className="fixed inset-0 z-[100] bg-ink/70 flex items-center justify-center px-4"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="See how Spendly works"
+    >
+      {/* Clicks inside the video box don't reach the backdrop */}
+      <div className="relative w-full max-w-[900px]" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close video"
+          className="absolute -top-12 right-0 w-10 h-10 flex items-center justify-center rounded-full bg-paper-card text-ink text-[1.5rem] leading-none cursor-pointer hover:bg-paper-warm transition-colors"
+        >
+          ×
+        </button>
+        <div className="aspect-video w-full bg-ink rounded-md overflow-hidden">
+          <iframe
+            className="w-full h-full"
+            src={DEMO_VIDEO_URL}
+            title="See how Spendly works"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // Static dashboard mock shown under the hero CTAs
 const previewStats = [
@@ -52,6 +107,8 @@ function HeroPreview() {
 // Landing page — mirrors the original landing.html exactly:
 // Hero section → Features section → CTA section
 function LandingPage() {
+  const [showVideo, setShowVideo] = useState(false);
+
   return (
     <>
       {/* ------------------------------------------------------------------ */}
@@ -86,24 +143,27 @@ function LandingPage() {
             >
               Create free account
             </Link>
-            <a
-              href="#features"
-              className="inline-block bg-ink text-paper px-10 py-[1.05rem] rounded-[10px] text-[1.1rem] font-semibold hover:bg-accent transition-colors"
+            <button
+              type="button"
+              onClick={() => setShowVideo(true)}
+              className="inline-block bg-ink text-paper px-10 py-[1.05rem] rounded-[10px] font-body text-[1.1rem] font-semibold cursor-pointer hover:bg-accent transition-colors"
             >
               See how it works
-            </a>
+            </button>
           </div>
 
           {/* Dashboard preview */}
           <HeroPreview />
 
         </div>
+
+        {showVideo && <VideoModal onClose={() => setShowVideo(false)} />}
       </section>
 
       {/* ------------------------------------------------------------------ */}
       {/* Features Section                                                    */}
       {/* ------------------------------------------------------------------ */}
-      <section id="features" className="bg-paper-warm border-t border-b border-border py-20 px-8">
+      <section className="bg-paper-warm border-t border-b border-border py-20 px-8">
         <div className="max-w-content mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
 
           <div className="bg-paper-card border border-border rounded-md p-8">
