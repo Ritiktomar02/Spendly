@@ -4,21 +4,9 @@ import Footer from "./components/Footer.jsx";
 import LandingPage from "./pages/LandingPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
-import DashboardPage from "./pages/DashboardPage.jsx";
 import TermsPage from "./pages/TermsPage.jsx";
 import PrivacyPage from "./pages/PrivacyPage.jsx";
 
-// PrivateRoute — redirects to /login if the user is not authenticated
-function PrivateRoute({ children }) {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-  return children;
-}
-
-// App sets up routing and the shared Navbar + Footer layout.
-// Every page is wrapped by Navbar (top) and Footer (bottom).
 function App() {
   return (
     <BrowserRouter>
@@ -34,16 +22,6 @@ function App() {
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
 
-            {/* Protected route — only accessible when logged in */}
-            <Route
-              path="/dashboard"
-              element={
-                <PrivateRoute>
-                  <DashboardPage />
-                </PrivateRoute>
-              }
-            />
-
             {/* Catch-all: redirect unknown routes to landing */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
@@ -56,4 +34,3 @@ function App() {
 }
 
 export default App;
-

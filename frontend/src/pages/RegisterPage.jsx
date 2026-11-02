@@ -2,41 +2,31 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { registerUser } from "../services/authService.js";
 
-// Register page — mirrors register.html exactly
-// On success: saves token + user to localStorage, redirects to /dashboard
+// Register page — creates an account, then sends the user to the login page
 function RegisterPage() {
   const navigate = useNavigate();
-
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-
-    // Client-side validation to match the original placeholder text
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters");
-      return;
-    }
-
-    setLoading(true);
+    setIsSubmitting(true);
 
     try {
-      const data = await registerUser(name, email, password);
-
-      // Save JWT and user info for use across the app
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      navigate("/dashboard");
+      await registerUser({ name, email, password });
+      navigate("/login", { state: { registered: true } });
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      // fetch throws a TypeError when the server can't be reached
+      if (err instanceof TypeError) {
+        setError("Could not reach the server. Please try again.");
+      } else {
+        setError(err.message);
+      }
+      setIsSubmitting(false);
     }
   }
 
@@ -52,12 +42,10 @@ function RegisterPage() {
 
         {/* Form card */}
         <div className="bg-paper-card border border-border rounded-md p-8 mb-6">
-
-          {/* Error message */}
           {error && (
-            <div className="bg-danger-light text-danger border border-[#f5c6c2] rounded-sm px-4 py-3 text-[0.875rem] mb-5">
+            <p role="alert" className="mb-5 px-[0.875rem] py-[0.6rem] rounded-sm bg-danger-light text-danger text-[0.85rem]">
               {error}
-            </div>
+            </p>
           )}
 
           <form onSubmit={handleSubmit}>
@@ -109,10 +97,10 @@ function RegisterPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={isSubmitting}
               className="w-full py-[0.7rem] mt-2 bg-ink text-paper rounded-sm font-body text-[0.95rem] font-medium cursor-pointer hover:bg-accent transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {loading ? "Creating account..." : "Create account"}
+              {isSubmitting ? "Creating account..." : "Create account"}
             </button>
           </form>
         </div>
@@ -131,4 +119,3 @@ function RegisterPage() {
 }
 
 export default RegisterPage;
-

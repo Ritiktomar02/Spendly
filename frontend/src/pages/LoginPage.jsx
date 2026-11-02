@@ -1,35 +1,17 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { loginUser } from "../services/authService.js";
+import { Link, useLocation } from "react-router-dom";
 
-// Login page — mirrors login.html exactly
-// On success: saves token + user to localStorage, redirects to /dashboard
+// Login page — form UI only
+// Authentication will be implemented in a later step
 function LoginPage() {
-  const navigate = useNavigate();
-
+  const location = useLocation();
+  const justRegistered = location.state?.registered;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e) {
+  function handleSubmit(e) {
     e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      const data = await loginUser(email, password);
-
-      // Save JWT and user info for use across the app
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      navigate("/dashboard");
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    // Authentication coming in a later step
   }
 
   return (
@@ -44,12 +26,10 @@ function LoginPage() {
 
         {/* Form card */}
         <div className="bg-paper-card border border-border rounded-md p-8 mb-6">
-
-          {/* Error message — only shown when there is an error */}
-          {error && (
-            <div className="bg-danger-light text-danger border border-[#f5c6c2] rounded-sm px-4 py-3 text-[0.875rem] mb-5">
-              {error}
-            </div>
+          {justRegistered && (
+            <p role="status" className="mb-5 px-[0.875rem] py-[0.6rem] rounded-sm bg-accent-light text-accent text-[0.85rem]">
+              Account created. Please sign in.
+            </p>
           )}
 
           <form onSubmit={handleSubmit}>
@@ -86,10 +66,9 @@ function LoginPage() {
 
             <button
               type="submit"
-              disabled={loading}
-              className="w-full py-[0.7rem] mt-2 bg-ink text-paper rounded-sm font-body text-[0.95rem] font-medium cursor-pointer hover:bg-accent transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full py-[0.7rem] mt-2 bg-ink text-paper rounded-sm font-body text-[0.95rem] font-medium cursor-pointer hover:bg-accent transition-colors"
             >
-              {loading ? "Signing in..." : "Sign in"}
+              Sign in
             </button>
           </form>
         </div>
@@ -108,4 +87,3 @@ function LoginPage() {
 }
 
 export default LoginPage;
-
