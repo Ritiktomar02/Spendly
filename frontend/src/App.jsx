@@ -7,6 +7,7 @@ import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 import TermsPage from "./pages/TermsPage.jsx";
 import PrivacyPage from "./pages/PrivacyPage.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
 import { getStoredUser, logoutUser } from "./services/authService.js";
 
 function App() {
@@ -42,6 +43,18 @@ function App() {
             />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
+            {/* Profile is for logged-in users only; others go to login */}
+            <Route
+              path="/profile"
+              element={
+                user ? (
+                  <ProfilePage user={user} />
+                ) : (
+                  // Remember where the user was going so login can send them back
+                  <Navigate to="/login" replace state={{ from: "/profile" }} />
+                )
+              }
+            />
 
             {/* Catch-all: redirect unknown routes to landing */}
             <Route path="*" element={<Navigate to="/" replace />} />

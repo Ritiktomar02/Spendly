@@ -24,7 +24,9 @@ function Navbar({ user, onLogout }) {
         <div className="flex items-center gap-6 text-[0.9rem] font-medium">
           {user ? (
             <>
-              <span className="text-ink-muted">{user.name}</span>
+              <Link to="/profile" className="text-ink-muted hover:text-ink transition-colors">
+                {user.name}
+              </Link>
               <button
                 type="button"
                 onClick={handleSignOut}

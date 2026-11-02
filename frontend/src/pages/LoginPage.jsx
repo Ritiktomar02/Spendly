@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { loginUser } from "../services/authService.js";
 
-// Login page — signs the user in, then sends them to the landing page
+// Login page — signs the user in, then sends them to their profile
 function LoginPage({ onLogin }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -20,7 +20,8 @@ function LoginPage({ onLogin }) {
     try {
       const user = await loginUser({ email, password });
       onLogin(user);
-      navigate("/");
+      // Go back to the page that sent us here, otherwise the profile page
+      navigate(location.state?.from || "/profile", { replace: true });
     } catch (err) {
       // fetch throws a TypeError when the server can't be reached
       if (err instanceof TypeError) {
