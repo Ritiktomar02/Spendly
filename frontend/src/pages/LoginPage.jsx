@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 // Login page — form UI only
 // Authentication will be implemented in a later step
 function LoginPage() {
+  const location = useLocation();
+  const justRegistered = location.state?.registered;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -24,6 +26,12 @@ function LoginPage() {
 
         {/* Form card */}
         <div className="bg-paper-card border border-border rounded-md p-8 mb-6">
+          {justRegistered && (
+            <p role="status" className="mb-5 px-[0.875rem] py-[0.6rem] rounded-sm bg-accent-light text-accent text-[0.85rem]">
+              Account created. Please sign in.
+            </p>
+          )}
+
           <form onSubmit={handleSubmit}>
             <div className="mb-5">
               <label htmlFor="email" className="block text-[0.85rem] font-medium text-ink-soft mb-1">

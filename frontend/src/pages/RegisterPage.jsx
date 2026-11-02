@@ -1,16 +1,33 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { registerUser } from "../services/authService.js";
 
-// Register page — form UI only
-// Authentication will be implemented in a later step
+// Register page — creates an account, then sends the user to the login page
 function RegisterPage() {
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    // Authentication coming in a later step
+    setError("");
+    setIsSubmitting(true);
+
+    try {
+      await registerUser({ name, email, password });
+      navigate("/login", { state: { registered: true } });
+    } catch (err) {
+      // fetch throws a TypeError when the server can't be reached
+      if (err instanceof TypeError) {
+        setError("Could not reach the server. Please try again.");
+      } else {
+        setError(err.message);
+      }
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -25,6 +42,12 @@ function RegisterPage() {
 
         {/* Form card */}
         <div className="bg-paper-card border border-border rounded-md p-8 mb-6">
+          {error && (
+            <p role="alert" className="mb-5 px-[0.875rem] py-[0.6rem] rounded-sm bg-danger-light text-danger text-[0.85rem]">
+              {error}
+            </p>
+          )}
+
           <form onSubmit={handleSubmit}>
             <div className="mb-5">
               <label htmlFor="name" className="block text-[0.85rem] font-medium text-ink-soft mb-1">
@@ -74,9 +97,10 @@ function RegisterPage() {
 
             <button
               type="submit"
-              className="w-full py-[0.7rem] mt-2 bg-ink text-paper rounded-sm font-body text-[0.95rem] font-medium cursor-pointer hover:bg-accent transition-colors"
+              disabled={isSubmitting}
+              className="w-full py-[0.7rem] mt-2 bg-ink text-paper rounded-sm font-body text-[0.95rem] font-medium cursor-pointer hover:bg-accent transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Create account
+              {isSubmitting ? "Creating account..." : "Create account"}
             </button>
           </form>
         </div>

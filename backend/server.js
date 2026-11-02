@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
+import authRoutes from "./routes/authRoutes.js";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -21,6 +22,9 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.json({ message: "Spendly API is running" });
 });
+
+// Auth routes (registration)
+app.use("/api/auth", authRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 5001;
