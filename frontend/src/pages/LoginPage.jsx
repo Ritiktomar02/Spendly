@@ -1,17 +1,35 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { loginUser } from "../services/authService.js";
 
-// Login page — form UI only
-// Authentication will be implemented in a later step
-function LoginPage() {
+// Login page — signs the user in, then sends them to the landing page
+function LoginPage({ onLogin }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const justRegistered = location.state?.registered;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    // Authentication coming in a later step
+    setError("");
+    setIsSubmitting(true);
+
+    try {
+      const user = await loginUser({ email, password });
+      onLogin(user);
+      navigate("/");
+    } catch (err) {
+      // fetch throws a TypeError when the server can't be reached
+      if (err instanceof TypeError) {
+        setError("Could not reach the server. Please try again.");
+      } else {
+        setError(err.message);
+      }
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -29,6 +47,12 @@ function LoginPage() {
           {justRegistered && (
             <p role="status" className="mb-5 px-[0.875rem] py-[0.6rem] rounded-sm bg-accent-light text-accent text-[0.85rem]">
               Account created. Please sign in.
+            </p>
+          )}
+
+          {error && (
+            <p role="alert" className="mb-5 px-[0.875rem] py-[0.6rem] rounded-sm bg-danger-light text-danger text-[0.85rem]">
+              {error}
             </p>
           )}
 
@@ -66,9 +90,10 @@ function LoginPage() {
 
             <button
               type="submit"
-              className="w-full py-[0.7rem] mt-2 bg-ink text-paper rounded-sm font-body text-[0.95rem] font-medium cursor-pointer hover:bg-accent transition-colors"
+              disabled={isSubmitting}
+              className="w-full py-[0.7rem] mt-2 bg-ink text-paper rounded-sm font-body text-[0.95rem] font-medium cursor-pointer hover:bg-accent transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Sign in
+              {isSubmitting ? "Signing in..." : "Sign in"}
             </button>
           </form>
         </div>
