@@ -25,6 +25,25 @@ function formatMonthYear(isoDate) {
   return new Date(isoDate).toLocaleDateString("en-GB", { month: "long", year: "numeric" });
 }
 
+// "2026-03-01" (from a date input) → "1 Mar 2026".
+// Adding T00:00:00 reads it as local midnight, so the day never shifts by timezone.
+function formatInputDate(value) {
+  return formatDate(`${value}T00:00:00`);
+}
+
+// Describes the applied date range for the summary card notes
+function getRangeLabel({ startDate, endDate }) {
+  if (startDate && endDate) return `${formatInputDate(startDate)} – ${formatInputDate(endDate)}`;
+  if (startDate) return `from ${formatInputDate(startDate)}`;
+  if (endDate) return `until ${formatInputDate(endDate)}`;
+  return "all time";
+}
+
+const emptyRange = { startDate: "", endDate: "" };
+
+const dateInputClass =
+  "w-full sm:w-auto px-[0.875rem] py-[0.6rem] border border-border rounded-sm font-body text-[0.95rem] text-ink bg-paper outline-none focus:border-accent transition-colors";
+
 // "Ritik Tomar" → "RT"
 function getInitials(name) {
   const words = (name || "").trim().split(/\s+/).filter(Boolean);
@@ -38,11 +57,24 @@ function getInitials(name) {
 function ProfilePage({ onLogout }) {
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [appliedRange, setAppliedRange] = useState(emptyRange);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    getProfile()
-      .then(setProfile)
+    // Ignore a slow older response if a newer range was applied meanwhile
+    let ignore = false;
+    setIsLoading(true);
+
+    getProfile(appliedRange)
+      .then((data) => {
+        if (ignore) return;
+        setProfile(data);
+        setError("");
+      })
       .catch((err) => {
+        if (ignore) return;
         // Token missing or expired: sign out so the app sends the user to login
         if (err.status === 401) {
           onLogout();
@@ -53,10 +85,36 @@ function ProfilePage({ onLogout }) {
             ? "Could not reach the server. Please try again."
             : err.message
         );
+      })
+      .finally(() => {
+        if (!ignore) setIsLoading(false);
       });
-  }, [onLogout]);
 
-  if (error) {
+    return () => {
+      ignore = true;
+    };
+  }, [appliedRange, onLogout]);
+
+  function handleApply(event) {
+    event.preventDefault();
+    if (startDate && endDate && startDate > endDate) {
+      setError("Start date must be on or before end date");
+      return;
+    }
+    setError("");
+    setAppliedRange({ startDate, endDate });
+  }
+
+  function handleClear() {
+    setStartDate("");
+    setEndDate("");
+    setError("");
+    setAppliedRange(emptyRange);
+  }
+
+  // Before the profile has loaded once, an error replaces the page.
+  // After that, errors show inline under the date filter.
+  if (error && !profile) {
     return (
       <section className="px-4 sm:px-8 py-12 md:py-16">
         <div className="max-w-content mx-auto">
@@ -78,10 +136,12 @@ function ProfilePage({ onLogout }) {
 
   const { summary, transactions, categoryBreakdown } = profile;
   const topCategoryAmount = categoryBreakdown.length > 0 ? categoryBreakdown[0].amount : 0;
+  const isFiltered = Boolean(appliedRange.startDate || appliedRange.endDate);
+  const rangeLabel = getRangeLabel(appliedRange);
 
   const summaryStats = [
-    { label: "Total spent", value: formatAmount(summary.totalSpent), note: "all time" },
-    { label: "Transactions", value: String(summary.transactionCount), note: "all time" },
+    { label: "Total spent", value: formatAmount(summary.totalSpent), note: rangeLabel },
+    { label: "Transactions", value: String(summary.transactionCount), note: rangeLabel },
     {
       label: "Top category",
       value: summary.topCategory,
@@ -107,6 +167,57 @@ function ProfilePage({ onLogout }) {
           </div>
         </div>
 
+        {/* Date filter */}
+        <form
+          onSubmit={handleApply}
+          className="bg-paper-card border border-border rounded-md px-6 py-5"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+            <div className="flex flex-col gap-1">
+              <label htmlFor="startDate" className="text-[0.85rem] text-ink-muted">From</label>
+              <input
+                id="startDate"
+                type="date"
+                value={startDate}
+                onChange={(event) => setStartDate(event.target.value)}
+                className={dateInputClass}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label htmlFor="endDate" className="text-[0.85rem] text-ink-muted">To</label>
+              <input
+                id="endDate"
+                type="date"
+                value={endDate}
+                onChange={(event) => setEndDate(event.target.value)}
+                className={dateInputClass}
+              />
+            </div>
+            <div className="flex items-center gap-4">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="px-5 py-[0.7rem] bg-ink text-paper rounded-sm font-body text-[0.95rem] font-medium cursor-pointer hover:bg-accent transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isLoading ? "Applying..." : "Apply"}
+              </button>
+              {isFiltered && (
+                <button
+                  type="button"
+                  onClick={handleClear}
+                  disabled={isLoading}
+                  className="text-[0.95rem] text-ink-muted hover:text-ink transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
+          {error && (
+            <p role="alert" className="text-danger text-[0.85rem] mt-3">{error}</p>
+          )}
+        </form>
+
         {/* Summary stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {summaryStats.map((stat) => (
@@ -125,7 +236,9 @@ function ProfilePage({ onLogout }) {
             <h2 className="font-display text-[1.2rem] text-ink mb-6">Spending by category</h2>
             <div className="flex flex-col gap-4">
               {categoryBreakdown.length === 0 && (
-                <p className="text-ink-muted">No expenses yet.</p>
+                <p className="text-ink-muted">
+                  {isFiltered ? "No expenses in this period." : "No expenses yet."}
+                </p>
               )}
               {categoryBreakdown.map((item, index) => (
                 <div key={item.name} className="grid grid-cols-[80px_1fr_60px] items-center gap-3">
@@ -143,7 +256,9 @@ function ProfilePage({ onLogout }) {
           <div className="bg-paper-card border border-border rounded-md p-6 sm:p-8">
             <h2 className="font-display text-[1.2rem] text-ink mb-4">Recent transactions</h2>
             {transactions.length === 0 && (
-              <p className="text-ink-muted">No transactions yet.</p>
+              <p className="text-ink-muted">
+                {isFiltered ? "No expenses in this period." : "No transactions yet."}
+              </p>
             )}
             <ul className="divide-y divide-border-soft">
               {transactions.map((tx, index) => (
