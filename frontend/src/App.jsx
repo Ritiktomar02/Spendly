@@ -48,7 +48,7 @@ function App() {
               path="/profile"
               element={
                 user ? (
-                  <ProfilePage user={user} />
+                  <ProfilePage onLogout={handleLogout} />
                 ) : (
                   // Remember where the user was going so login can send them back
                   <Navigate to="/login" replace state={{ from: "/profile" }} />
