@@ -55,3 +55,8 @@ export function logoutUser() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
 }
+
+// Return the saved login token, or null if there isn't one
+export function getStoredToken() {
+  return localStorage.getItem(TOKEN_KEY);
+}
