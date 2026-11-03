@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -25,6 +26,9 @@ app.get("/", (req, res) => {
 
 // Auth routes (registration)
 app.use("/api/auth", authRoutes);
+
+// Profile data for the logged-in user
+app.use("/api/profile", profileRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 5001;
